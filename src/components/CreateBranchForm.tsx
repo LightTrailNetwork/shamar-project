@@ -26,6 +26,15 @@ export function CreateBranchForm({ level, reference, parentBranchId, letterConst
     // Format reference for display
     useEffect(() => {
         try {
+            if (reference === 'OT') {
+                setDisplayTitle("Old Testament")
+                return
+            }
+            if (reference === 'NT') {
+                setDisplayTitle("New Testament")
+                return
+            }
+
             const parts = reference.split('.')
             if (parts.length > 0) {
                 const bookInfo = getBookInfo(parts[0])

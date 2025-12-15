@@ -89,7 +89,8 @@ export default async function BookPage({ params }: PageProps) {
 
                             {best ? (
                                 <div className="text-muted-foreground font-serif">
-                                    {best.content}
+                                    <span className="text-primary font-bold text-lg">{best.content.charAt(0)}</span>
+                                    {best.content.slice(1)}
                                 </div>
                             ) : (
                                 <div className="text-sm text-gray-400 italic flex items-center gap-2">

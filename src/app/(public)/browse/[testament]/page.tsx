@@ -4,6 +4,7 @@ import { BIBLE_DATA, getBookInfo } from '@/lib/bible-data'
 import { BranchCard } from '@/components/BranchCard'
 import { PathBreadcrumb } from '@/components/PathBreadcrumb'
 import { notFound } from 'next/navigation'
+import { TestamentView } from '@/components/TestamentView'
 
 interface PageProps {
     params: Promise<{ testament: string }>
@@ -60,7 +61,8 @@ export default async function TestamentPage({ params }: PageProps) {
             code: bookCode,
             name: bookInfo.name,
             bestBranch: variants[0] || null,
-            count: variants.length
+            count: variants.length,
+            chapterCount: bookInfo.chapterCount // Added this
         }
     })
 
@@ -74,92 +76,13 @@ export default async function TestamentPage({ params }: PageProps) {
                 {ref === 'OT' ? 'Old Testament' : 'New Testament'}
             </h1>
 
-            {testamentBranch ? (
-                <div className="mb-12">
-                    <div className="flex justify-between items-end mb-2">
-                        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Testament Acrostic</h2>
-                        <Link href={`/create?level=testament&ref=${ref}`} className="text-sm font-medium text-primary hover:underline">
-                            + Add Alternative
-                        </Link>
-                    </div>
-                    <BranchCard
-                        branch={testamentBranch}
-                        votes={testamentBranch.score}
-                        userVote={0}
-                        alternativesCount={testamentAlternativesCount}
-                    />
-                </div>
-            ) : (
-                <div className="mb-12 p-8 border-2 border-dashed border-gray-200 rounded-lg text-center">
-                    <p className="text-gray-500 mb-4">No acrostic found for this testament.</p>
-                    <Link href={`/create?level=testament&ref=${ref}`} className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90">
-                        Create the First One
-                    </Link>
-                </div>
-            )}
-
-            <h2 className="text-2xl font-bold mb-6">Books</h2>
-
-            <div className="space-y-4">
-                {books.map(book => (
-                    <div key={book.code} className="border border-border rounded-lg p-4 hover:border-primary/50 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                            <Link href={`/browse/${ref}/${book.code}`} className="text-xl font-bold hover:text-primary">
-                                {book.name}
-                            </Link>
-                        </div>
-
-                        {book.bestBranch ? (
-                            <div className="text-muted-foreground font-serif">
-                                {book.bestBranch.content}
-                            </div>
-                        ) : (
-                            <div className="text-sm text-gray-400 italic flex items-center gap-2">
-                                No acrostic yet.
-                                {testamentBranch && (() => {
-                                    // Calculate constraint letter
-                                    const words = testamentBranch.content.trim().split(/\s+/)
-                                    const index = booksList.indexOf(book.code)
-                                    const letter = words[index]?.[0]?.toUpperCase()
-
-                                    if (letter) {
-                                        return (
-                                            <Link
-                                                href={`/create?level=book&ref=${book.code}&parent=${testamentBranch.id}&constraint=${letter}`}
-                                                className="text-primary hover:underline not-italic"
-                                            >
-                                                Create (Start with {letter})
-                                            </Link>
-                                        )
-                                    }
-                                    return null
-                                })()}
-                            </div>
-                        )}
-                        <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-                            <span>{book.count} alternatives</span>
-                            <Link href={`/browse/${ref}/${book.code}`} className="text-primary hover:underline">
-                                View Chapters →
-                            </Link>
-                            {testamentBranch && (() => {
-                                const words = testamentBranch.content.trim().split(/\s+/)
-                                const index = booksList.indexOf(book.code)
-                                const letter = words[index]?.[0]?.toUpperCase()
-                                if (letter) {
-                                    return (
-                                        <Link
-                                            href={`/create?level=book&ref=${book.code}&parent=${testamentBranch.id}&constraint=${letter}`}
-                                            className="text-primary hover:underline"
-                                        >
-                                            + Add Alt
-                                        </Link>
-                                    )
-                                }
-                            })()}
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <TestamentView
+                testamentRef={ref}
+                books={books}
+                testamentBranch={testamentBranch}
+                testamentAlternativesCount={testamentAlternativesCount}
+                booksList={booksList}
+            />
         </div>
     )
 }

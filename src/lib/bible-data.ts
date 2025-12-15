@@ -27,6 +27,23 @@ const OT_BOOKS = new Set([
     "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL"
 ]);
 
+export const TESTAMENT_SECTIONS = {
+    OT: [
+        { name: "THE LAW", count: 5 },
+        { name: "HISTORY", count: 12 },
+        { name: "POETRY & WISDOM", count: 5 },
+        { name: "MAJOR PROPHETS", count: 5 },
+        { name: "MINOR PROPHETS", count: 12 }
+    ],
+    NT: [
+        { name: "THE GOSPELS", count: 4 },
+        { name: "HISTORY", count: 1 },
+        { name: "PAUL'S EPISTLES", count: 13 },
+        { name: "GENERAL EPISTLES", count: 8 },
+        { name: "PROPHECY", count: 1 }
+    ]
+}
+
 BIBLE_BOOK_ORDER.forEach(code => {
     const bookData = BIBLE_BOOKS[code];
     if (!bookData) return;

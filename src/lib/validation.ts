@@ -16,22 +16,28 @@ export function validateAcrostic(
         return { valid: true }
     }
 
-    const words = text.trim().split(/\s+/)
+    // Strict letter counting: ignore spaces, numbers, punctuation
+    // "JUST" -> 4 letters. "J U S T" -> 4 letters. "J.U.S.T" -> 4 letters.
+    const cleanText = text.replace(/[^a-zA-Z]/g, '')
+    const count = cleanText.length
+
     const requiredCount = getRequiredWordCount(level, reference)
 
-    if (requiredCount > 0 && words.length !== requiredCount) {
+    if (requiredCount > 0 && count !== requiredCount) {
         return {
             valid: false,
-            error: `Must have exactly ${requiredCount} words (currently ${words.length})`
+            error: `Must have exactly ${requiredCount} letters (currently ${count})`
         }
     }
 
     if (requiredFirstLetter) {
-        const firstLetter = words[0][0].toUpperCase()
-        if (firstLetter !== requiredFirstLetter.toUpperCase()) {
-            return {
-                valid: false,
-                error: `Must start with letter "${requiredFirstLetter}" (currently starts with "${firstLetter}")`
+        if (cleanText.length > 0) {
+            const firstLetter = cleanText[0].toUpperCase()
+            if (firstLetter !== requiredFirstLetter.toUpperCase()) {
+                return {
+                    valid: false,
+                    error: `Must start with letter "${requiredFirstLetter}" (currently starts with "${firstLetter}")`
+                }
             }
         }
     }

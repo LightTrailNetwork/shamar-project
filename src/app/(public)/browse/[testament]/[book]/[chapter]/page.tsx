@@ -95,7 +95,8 @@ export default async function ChapterPage({ params }: PageProps) {
                             <div className="flex-1 space-y-3">
                                 {best ? (
                                     <div className="text-xl font-medium text-gray-900 leading-relaxed font-serif">
-                                        {best.content}
+                                        <span className="text-primary font-bold">{best.content.charAt(0)}</span>
+                                        {best.content.slice(1)}
                                     </div>
                                 ) : (
                                     <div className="text-sm text-gray-400 italic flex items-center gap-2 py-1">

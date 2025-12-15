@@ -44,11 +44,26 @@ export default async function Home() {
                     <h1 className="text-5xl md:text-6xl font-serif font-bold text-gray-900 mb-6 tracking-tight">
                         The <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-blue-600">Shamar</span> Project
                     </h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-10">
                         Scripture Hierarchical Acrostic for Memorization And Recall.
                         <br />
                         <span className="text-gray-500 text-lg mt-2 block">Crowd-sourced mnemonics to help you memorize the entire Bible.</span>
                     </p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Link
+                            href="/tree"
+                            className="px-8 py-3 rounded-full bg-primary text-white font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:scale-105"
+                        >
+                            View Interactive Tree
+                        </Link>
+                        <Link
+                            href="/browse/OT"
+                            className="px-8 py-3 rounded-full bg-white text-gray-600 border border-gray-200 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all"
+                        >
+                            Browse Books
+                        </Link>
+                    </div>
                 </div>
             </div>
 

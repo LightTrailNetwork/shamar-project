@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { validateAcrostic } from '@/lib/validation'
 import { useRouter } from 'next/navigation'
+import { getBookInfo } from '@/lib/bible-data'
 
 interface CreateBranchFormProps {
     level: string
@@ -17,9 +18,31 @@ export function CreateBranchForm({ level, reference, parentBranchId, letterConst
     const [error, setError] = useState<string | null>(null)
     const [isValid, setIsValid] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [displayTitle, setDisplayTitle] = useState(reference)
 
     const router = useRouter()
     const supabase = createClient()
+
+    // Format reference for display
+    useEffect(() => {
+        try {
+            const parts = reference.split('.')
+            if (parts.length > 0) {
+                const bookInfo = getBookInfo(parts[0])
+                if (bookInfo) {
+                    if (parts.length === 1) {
+                        setDisplayTitle(bookInfo.name)
+                    } else if (parts.length === 2) {
+                        setDisplayTitle(`${bookInfo.name} ${parts[1]}`)
+                    } else if (parts.length >= 3) {
+                        setDisplayTitle(`${bookInfo.name} ${parts[1]}:${parts[2]}`)
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error formatting title", e)
+        }
+    }, [reference])
 
     // Validate on change
     useEffect(() => {
@@ -72,7 +95,7 @@ export function CreateBranchForm({ level, reference, parentBranchId, letterConst
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow border border-border">
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    New Mnemonics for {reference} ({level})
+                    New Mnemonics for {displayTitle} ({level})
                 </label>
                 {letterConstraint && (
                     <p className="text-sm text-amber-600 mb-2 font-medium">

@@ -4,6 +4,7 @@ import { getBookInfo, getChapterVerseCount } from '@/lib/bible-data'
 import { BranchCard } from '@/components/BranchCard'
 import { PathBreadcrumb } from '@/components/PathBreadcrumb'
 import { notFound } from 'next/navigation'
+import { getChapterText } from '@/lib/bible-api'
 
 interface PageProps {
     params: Promise<{ testament: string; book: string; chapter: string }>
@@ -24,23 +25,29 @@ export default async function ChapterPage({ params }: PageProps) {
     const supabase = await createClient()
     const chapterRef = `${bookCode}.${chapterNum}`
 
-    // Fetch verse mnemonics
+    // Parallel data fetching
+    const [verseBranchesResult, chapterBranchResult, bsbVerses] = await Promise.all([
+        // Fetch verse mnemonics
+        supabase
+            .from('branches')
+            .select('*, votes (vote_value)')
+            .eq('level', 'verse')
+            .in('reference', Array.from({ length: verseCount }, (_, i) => `${chapterRef}.${i + 1}`)),
+
+        // Fetch chapter acrostic
+        supabase
+            .from('branches')
+            .select('*, votes (vote_value)')
+            .eq('level', 'chapter')
+            .eq('reference', chapterRef),
+
+        // Fetch Bible text
+        getChapterText(bookCode, chapterNum)
+    ])
+
     const verses = Array.from({ length: verseCount }, (_, i) => i + 1)
-    const verseRefs = verses.map(v => `${chapterRef}.${v}`)
-
-    // Fetch verse branches
-    const { data: verseBranches } = await supabase
-        .from('branches')
-        .select('*, votes (vote_value)')
-        .eq('level', 'verse')
-        .in('reference', verseRefs)
-
-    // Fetch chapter acrostic
-    const { data: chapterBranchData } = await supabase
-        .from('branches')
-        .select('*, votes (vote_value)')
-        .eq('level', 'chapter')
-        .eq('reference', chapterRef)
+    const verseBranches = verseBranchesResult.data
+    const chapterBranchData = chapterBranchResult.data
 
     const getScore = (branch: any) => branch.votes?.reduce((acc: number, v: any) => acc + (v.vote_value || 0), 0) || 0
 
@@ -57,7 +64,7 @@ export default async function ChapterPage({ params }: PageProps) {
                 { label: `Chapter ${chapter}`, href: `/browse/${ref}/${bookCode}/${chapter}` }
             ]} />
 
-            <h1 className="text-3xl font-bold mb-6">{bookInfo.name} {chapter}</h1>
+            <h1 className="text-3xl font-bold mb-6 font-serif">{bookInfo.name} {chapter}</h1>
 
             {chapterBranch && (
                 <div className="mb-12">
@@ -70,9 +77,9 @@ export default async function ChapterPage({ params }: PageProps) {
                 </div>
             )}
 
-            <h2 className="text-2xl font-bold mb-6">Verses</h2>
+            <h2 className="text-2xl font-bold mb-6 font-serif">Verses</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 {verses.map(verse => {
                     const ref = `${chapterRef}.${verse}`
                     const variants = (verseBranches || [])
@@ -83,19 +90,19 @@ export default async function ChapterPage({ params }: PageProps) {
                     const best = variants[0]
 
                     return (
-                        <div key={verse} className="flex gap-4 p-4 border-b border-border last:border-0 hover:bg-gray-50/50 transition-colors">
-                            <div className="w-8 pt-1 font-mono text-sm text-muted-foreground font-bold">{verse}</div>
-                            <div className="flex-1">
+                        <div key={verse} className="flex gap-4 p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-gray-200 transition-all">
+                            <div className="pt-1 font-serif text-lg text-primary/60 font-medium w-8 text-center">{verse}</div>
+                            <div className="flex-1 space-y-3">
                                 {best ? (
-                                    <div className="text-foreground">
+                                    <div className="text-xl font-medium text-gray-900 leading-relaxed font-serif">
                                         {best.content}
                                     </div>
                                 ) : (
-                                    <div className="text-sm text-gray-400 italic flex items-center gap-2">
+                                    <div className="text-sm text-gray-400 italic flex items-center gap-2 py-1">
                                         {chapterBranch && (
                                             <Link
                                                 href={`/create?level=verse&ref=${ref}&parent=${chapterBranch.id}`}
-                                                className="text-primary hover:underline not-italic"
+                                                className="text-primary hover:underline not-italic font-medium"
                                             >
                                                 Add Mnemonic
                                             </Link>
@@ -103,14 +110,23 @@ export default async function ChapterPage({ params }: PageProps) {
                                         {!chapterBranch && "No chapter acrostic (cannot link)"}
                                     </div>
                                 )}
+
+                                {/* Bible Text */}
+                                {bsbVerses[verse] && (
+                                    <div className="text-gray-600 font-serif leading-relaxed pt-2 border-t border-gray-100">
+                                        {bsbVerses[verse]}
+                                        <span className="text-[10px] text-gray-300 ml-2 select-none">BSB</span>
+                                    </div>
+                                )}
+
                                 {/* Alt link for verses */}
                                 {chapterBranch && best && (
-                                    <div className="mt-1">
+                                    <div className="pt-2">
                                         <Link
                                             href={`/create?level=verse&ref=${ref}&parent=${chapterBranch.id}`}
-                                            className="text-xs text-primary hover:underline"
+                                            className="text-xs text-primary/70 hover:text-primary hover:underline transition-colors"
                                         >
-                                            + Add Alt
+                                            + Add Alternative
                                         </Link>
                                     </div>
                                 )}
